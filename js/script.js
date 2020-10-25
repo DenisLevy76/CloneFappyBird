@@ -5,6 +5,33 @@ function createElement(tagName, className){
     return element
 }
 
+function hasOverlay(objectA, objectB){
+    const areaA = objectA.getBoundingClientRect()
+    const areaB = objectB.getBoundingClientRect()
+    const rightSideA = areaA.left + areaA.width
+    const toptSideA = areaA.top + areaA.height
+    const rightSideB = areaB.left + areaB.width
+    const toptSideB = areaB.top + areaB.height
+
+    const overlayX = rightSideA >= areaB.left && rightSideB >= areaA.left
+    const overlayY = toptSideA >= areaB.top && toptSideB >= areaA.top
+
+    return overlayX && overlayY
+}
+
+function hasCollision(bird, pairOfPipe){
+    let collision = false
+
+    pairOfPipe.pairs.forEach((pipe) => {
+        if (!collision){
+            const upper = pipe.upperPipe.pipe
+            const lower = pipe.reversePipe.pipe
+            collision = hasOverlay(bird.bird, upper) || hasOverlay(bird.bird, lower)
+        }
+    })
+    return collision
+}
+
 function CreatePipe(reverse = false) {
     this.pipe = createElement('div', 'pipe')
 
@@ -132,9 +159,13 @@ function Game(){
     gameScreen.appendChild(score.score)
 
     this.start = () => {
-        const temporizador = setInterval(() => {
+        const timer = setInterval(() => {
                 pairs.animate()
                 bird.animate()
+
+                if (hasCollision(bird, pairs)){
+                    clearInterval(timer)
+                }
             
         }, 20)
     }
